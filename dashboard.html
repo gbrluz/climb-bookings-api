@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Clube - Recebimento de Leilões</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; padding: 20px; }
+        .auction-card { border: 2px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #1e1e1e; transition: transform 0.2s; }
+        .auction-card.new { border-color: #4CAF50; animation: blink 1.5s; }
+        @keyframes blink { from { background: #1b4332; } to { background: #1e1e1e; } }
+        .badge { background: #4CAF50; color: black; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }
+        #status { margin-bottom: 20px; padding: 10px; border-radius: 5px; background: #222; display: inline-block; }
+        button { background: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>🎾 Painel de Leilões em Tempo Real</h1>
+    <div id="status">⏳ Conectando ao servidor...</div>
+    <div id="auctions-container"></div>
+
+    <script>
+        // Configurações baseadas no seu teste de sucesso
+        const clubId = '4576b1a6-618a-4158-bc36-fc2783435bcf';
+        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsImtpZCI6IlRJcWVlUnM3eitqa3pJTEYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FtYnl6cHVwZ3Riemt6bXl5bmVoLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2NDBmODEwZi1iNGJmLTQyNGItYmRiMy0yMDczYzNhYTIzYWQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzY3MTI1NTI4LCJpYXQiOjE3NjcxMjE5MjgsImVtYWlsIjoidGVzdGVAY2xpbWIuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NjcxMjE5Mjh9XSwic2Vzc2lvbl9pZCI6ImRjOTk3Mjg5LTBhZGEtNDU5ZS04NzcxLWYwNzQ4NDNiNDI4MSIsImlzX2Fub255bW91cyI6ZmFsc2V9.bPOkkDy-2v-VTKRMA-NFWt0-cB4TkqZhTPVUMJigo7Y';
+
+        // Inicialização do Socket usando o caminho que funcionou no seu teste manual
+        const socket = io('http://127.0.0.1:3000', {
+            query: { clubId },
+            transports: ['polling', 'websocket'], // Polling primeiro para garantir o handshake
+            upgrade: true,
+            forceNew: true
+        });
+
+        const statusDiv = document.getElementById('status');
+
+        socket.on('connect', () => {
+            console.log('✅ Conectado ao servidor Socket.io!');
+            statusDiv.innerHTML = `🟢 Conectado como Clube: ${clubId}`;
+            statusDiv.style.color = "#4CAF50";
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('❌ Erro de Conexão:', err);
+            statusDiv.innerHTML = `🔴 Erro: ${err.message}`;
+            statusDiv.style.color = "#ff5252";
+        });
+
+        socket.on('new_auction', (auction) => {
+            console.log('📢 Novo leilão recebido:', auction);
+            const container = document.getElementById('auctions-container');
+            const card = document.createElement('div');
+            card.className = 'auction-card new';
+            card.id = `card-${auction.id}`;
+            card.innerHTML = `
+                <div><span class="badge">NOVO PEDIDO</span> <strong>ID: ${auction.id}</strong></div>
+                <p>📅 Data: ${auction.date} às ${auction.time}</p>
+                <p>📍 Localização detectada: ${auction.city || 'Próximo ao Clube'}</p>
+                <button onclick="claimAuction('${auction.id}')">Confirmar no meu Clube</button>
+            `;
+            container.prepend(card);
+        });
+
+        async function claimAuction(auctionId) {
+            try {
+                // Usamos o IP 127.0.0.1 também no fetch para consistência;.
+                const response = await fetch(`http://127.0.0.1:3000/auction/claim/${auctionId}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}` 
+                    },
+                    body: JSON.stringify({ clubId })
+                });
+
+                if (response.ok) {
+                    alert('✅ Partida confirmada com sucesso!');
+                    const card = document.getElementById(`card-${auctionId}`);
+                    if (card) card.remove();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Erro: ' + (error.message || 'Não foi possível aceitar este leilão.'));
+                }
+            } catch (err) {
+                console.error('Erro no fetch:', err);
+                alert('❌ Falha na comunicação com a API.');
+            }
+        }
+    </script>
+</body>
+</html>
