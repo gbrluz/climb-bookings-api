@@ -1,31 +1,49 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { BookingsModule } from './bookings/bookings.module';
-import { ClubsModule } from './clubs/clubs.module';
-import { AuctionModule } from './auction/auction.module';
-import { NotificationsModule } from './notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from '@songkeys/nestjs-redis';
+import { APP_GUARD } from '@nestjs/core';
+
+// Infrastructure
+import { DatabaseModule } from './infrastructure/database/database.module';
+
+// Presentation (HTTP Controllers)
+import { BookingsModule } from './presentation/http/bookings/bookings.module';
+import { ClubsModule } from './presentation/http/clubs/clubs.module';
+import { CourtsModule } from './presentation/http/courts/courts.module';
+
+// Legacy modules (to be migrated)
+import { AuctionModule } from './auction/auction.module';
+import { NotificationsModule } from './notifications/notifications.module';
+
+// Common
+import { AuthGuard } from './common/guards/auth.guard';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     RedisModule.forRoot({
       config: {
-        // Usa a URL do Upstash que está no seu .env
-        url: process.env.REDIS_URL, 
-        // Adicione estas opções para evitar erros de conexão em nuvem
-        connectTimeout: 10000
+        url: process.env.REDIS_URL,
+        connectTimeout: 10000,
       },
     }),
-    ScheduleModule.forRoot(), // Para ler o arquivo .env
+    ScheduleModule.forRoot(),
+    DatabaseModule,
     BookingsModule,
     ClubsModule,
+    CourtsModule,
+    // Legacy modules (keep until migrated)
     AuctionModule,
-    NotificationsModule],
-  controllers: [AppController],
-  providers: [AppService],
+    NotificationsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}
