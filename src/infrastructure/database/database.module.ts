@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { SupabaseService } from './supabase/supabase.service';
 import { BookingRepository } from './supabase/repositories/booking.repository';
 import { ClubRepository } from './supabase/repositories/club.repository';
@@ -6,6 +6,7 @@ import { CourtRepository } from './supabase/repositories/court.repository';
 import { AuctionRepository } from './supabase/repositories/auction.repository';
 import { CacheModule } from '../cache/cache.module';
 
+@Global()
 @Module({
   imports: [CacheModule],
   providers: [
