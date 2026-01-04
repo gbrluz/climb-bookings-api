@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AddCourtToClubUseCase } from './use-cases/add-court-to-club.use-case';
+import { ListCourtsByClubUseCase } from './use-cases/list-courts-by-club.use-case';
 
 @Module({
   imports: [DatabaseModule],
@@ -12,7 +13,14 @@ import { AddCourtToClubUseCase } from './use-cases/add-court-to-club.use-case';
       },
       inject: ['ICourtRepository', 'IClubRepository'],
     },
+    {
+      provide: ListCourtsByClubUseCase,
+      useFactory: (courtRepo) => {
+        return new ListCourtsByClubUseCase(courtRepo);
+      },
+      inject: ['ICourtRepository'],
+    },
   ],
-  exports: [AddCourtToClubUseCase],
+  exports: [AddCourtToClubUseCase, ListCourtsByClubUseCase],
 })
 export class CourtsApplicationModule {}

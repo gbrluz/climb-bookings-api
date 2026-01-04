@@ -17,12 +17,12 @@ import {
 } from '@nestjs/swagger';
 import { CreateClubUseCase } from '../../../application/clubs/use-cases/create-club.use-case';
 import { ListClubsUseCase } from '../../../application/clubs/use-cases/list-clubs.use-case';
+import { ListCourtsByClubUseCase } from '../../../application/courts/use-cases/list-courts-by-club.use-case';
 import { CreateClubDto } from '../../../application/clubs/dto/create-club.dto';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import type { CurrentUserData } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
-import type { ICourtRepository } from '../../../domain/courts/repositories/court.repository.interface';
 
 @ApiTags('Clubs')
 @Controller('clubs')
@@ -30,7 +30,7 @@ export class ClubsController {
   constructor(
     private readonly createClubUseCase: CreateClubUseCase,
     private readonly listClubsUseCase: ListClubsUseCase,
-    private readonly courtRepository: ICourtRepository,
+    private readonly listCourtsByClubUseCase: ListCourtsByClubUseCase,
   ) {}
 
   @Public()
@@ -49,7 +49,7 @@ export class ClubsController {
   @ApiParam({ name: 'id', type: String })
   @ApiResponse({ status: 200, description: 'List of courts' })
   async getClubCourts(@Param('id') clubId: string) {
-    const courts = await this.courtRepository.findActiveByClubId(clubId);
+    const courts = await this.listCourtsByClubUseCase.execute(clubId);
     return courts.map((court) => court.toPlainObject());
   }
 
