@@ -6,18 +6,24 @@ import { APP_GUARD } from '@nestjs/core';
 
 // Infrastructure
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { CacheModule } from './infrastructure/cache/cache.module';
+import { MessagingModule } from './infrastructure/messaging/messaging.module';
 
 // Presentation (HTTP Controllers)
 import { BookingsModule } from './presentation/http/bookings/bookings.module';
 import { ClubsModule } from './presentation/http/clubs/clubs.module';
 import { CourtsModule } from './presentation/http/courts/courts.module';
+import { AuctionsModule } from './presentation/http/auctions/auctions.module';
 
-// Legacy modules (to be migrated)
-import { AuctionModule } from './auction/auction.module';
+// Legacy modules (to be removed)
 import { NotificationsModule } from './notifications/notifications.module';
 
 // Common
 import { AuthGuard } from './common/guards/auth.guard';
+
+// Cron jobs
+import { AuctionExpirationCron } from './presentation/cron/auction-expiration.cron';
+import { AuctionsApplicationModule } from './application/auctions/auctions-application.module';
 
 @Module({
   imports: [
@@ -32,11 +38,14 @@ import { AuthGuard } from './common/guards/auth.guard';
     }),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    CacheModule,
+    MessagingModule,
     BookingsModule,
     ClubsModule,
     CourtsModule,
-    // Legacy modules (keep until migrated)
-    AuctionModule,
+    AuctionsModule,
+    AuctionsApplicationModule, // For cron jobs
+    // Legacy modules (keep for backwards compatibility)
     NotificationsModule,
   ],
   providers: [
@@ -44,6 +53,7 @@ import { AuthGuard } from './common/guards/auth.guard';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    AuctionExpirationCron,
   ],
 })
 export class AppModule {}

@@ -31,6 +31,7 @@ async function bootstrap() {
     .addTag('Bookings', 'Court booking and availability')
     .addTag('Clubs', 'Club management')
     .addTag('Courts', 'Court management')
+    .addTag('Auctions', 'Match auction system')
     .addBearerAuth()
     .build();
 
