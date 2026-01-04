@@ -17,6 +17,7 @@ import { AuctionsModule } from './presentation/http/auctions/auctions.module';
 
 // Common
 import { AuthGuard } from './common/guards/auth.guard';
+import { HealthController } from './common/health/health.controller';
 
 // Cron jobs
 import { AuctionExpirationCron } from './presentation/cron/auction-expiration.cron';
@@ -43,6 +44,7 @@ import { AuctionsApplicationModule } from './application/auctions/auctions-appli
     AuctionsModule,
     AuctionsApplicationModule, // For cron jobs
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,
