@@ -15,9 +15,6 @@ import { ClubsModule } from './presentation/http/clubs/clubs.module';
 import { CourtsModule } from './presentation/http/courts/courts.module';
 import { AuctionsModule } from './presentation/http/auctions/auctions.module';
 
-// Legacy modules (to be removed)
-import { NotificationsModule } from './notifications/notifications.module';
-
 // Common
 import { AuthGuard } from './common/guards/auth.guard';
 
@@ -45,8 +42,6 @@ import { AuctionsApplicationModule } from './application/auctions/auctions-appli
     CourtsModule,
     AuctionsModule,
     AuctionsApplicationModule, // For cron jobs
-    // Legacy modules (keep for backwards compatibility)
-    NotificationsModule,
   ],
   providers: [
     {
