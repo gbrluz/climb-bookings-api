@@ -30,36 +30,32 @@ export class ClubRepository implements IClubRepository {
       data.location = `POINT(${club.longitude} ${club.latitude})`;
     }
 
-    const { data: savedData, error } = await supabase
-      .from('clubs')
-      .insert(data)
-      .select()
-      .single();
+    const { error } = await supabase.from('clubs').insert(data);
 
     if (error) {
       console.error('Error saving club to Supabase:', error);
       throw new Error(`Failed to save club: ${error.message}`);
     }
 
-    // Return club with coordinates from input (not from DB location field)
-    return Club.reconstitute({
-      ...savedData,
-      latitude: club.latitude,
-      longitude: club.longitude,
-    });
+    // Fetch saved club with coordinates using RPC
+    const savedClub = await this.findById(club.id);
+    if (!savedClub) {
+      throw new Error('Failed to retrieve saved club');
+    }
+
+    return savedClub;
   }
 
   async findById(id: string): Promise<Club | null> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('clubs')
-      .select('*')
-      .eq('id', id)
-      .single();
+
+    const { data, error } = await supabase.rpc('get_club_by_id', {
+      club_id: id,
+    });
 
     if (error) {
-      if (error.code === 'PGRST116') return null;
-      throw error;
+      console.error('Error fetching club by ID:', error);
+      return null;
     }
 
     return data ? this.mapToDomain(data) : null;
@@ -67,24 +63,34 @@ export class ClubRepository implements IClubRepository {
 
   async findByOwnerId(ownerId: string): Promise<Club[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('clubs')
-      .select('*')
-      .eq('owner_id', ownerId);
 
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('get_clubs_by_owner_id', {
+      p_owner_id: ownerId,
+    });
+
+    if (error) {
+      console.error('Error fetching clubs by owner ID:', error);
+      return [];
+    }
+
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((item) => this.mapToDomain(item));
   }
 
   async findByCity(city: string): Promise<Club[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('clubs')
-      .select('*')
-      .ilike('city', `%${city}%`);
 
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('get_clubs_by_city', {
+      p_city: city,
+    });
+
+    if (error) {
+      console.error('Error fetching clubs by city:', error);
+      return [];
+    }
+
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((item) => this.mapToDomain(item));
   }
@@ -110,11 +116,15 @@ export class ClubRepository implements IClubRepository {
 
   async findAll(): Promise<Club[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('clubs')
-      .select('*');
 
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('get_all_clubs');
+
+    if (error) {
+      console.error('Error fetching all clubs:', error);
+      return [];
+    }
+
+    if (!data || !Array.isArray(data)) return [];
 
     return data.map((item) => this.mapToDomain(item));
   }
@@ -135,22 +145,21 @@ export class ClubRepository implements IClubRepository {
       data.location = `POINT(${club.longitude} ${club.latitude})`;
     }
 
-    const { data: updatedData, error } = await supabase
+    const { error } = await supabase
       .from('clubs')
       .update(data)
-      .eq('id', club.id)
-      .select()
-      .single();
+      .eq('id', club.id);
 
-    if (error) throw error;
-    if (!updatedData) throw new EntityNotFoundException('Club', club.id);
+    if (error) {
+      console.error('Error updating club:', error);
+      throw new Error(`Failed to update club: ${error.message}`);
+    }
 
-    // Return club with coordinates from input (not from DB location field)
-    return Club.reconstitute({
-      ...updatedData,
-      latitude: club.latitude,
-      longitude: club.longitude,
-    });
+    // Fetch updated club with coordinates using RPC
+    const updatedClub = await this.findById(club.id);
+    if (!updatedClub) throw new EntityNotFoundException('Club', club.id);
+
+    return updatedClub;
   }
 
   async delete(id: string): Promise<void> {
