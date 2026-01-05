@@ -24,7 +24,24 @@ export class SupabaseService implements OnModuleInit {
   }
 
   async verifyToken(token: string) {
-    const { data, error } = await this.supabase.auth.getUser(token);
+    // Para verificar o token do usuário, precisamos criar um cliente temporário
+    // com o token do usuário, não com a service role key
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+    const supabaseAnonKey = this.configService.get<string>('SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase URL and Anon Key must be provided');
+    }
+
+    const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+
+    const { data, error } = await tempClient.auth.getUser();
     if (error) throw error;
     return data.user;
   }
