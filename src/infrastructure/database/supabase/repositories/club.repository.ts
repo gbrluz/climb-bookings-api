@@ -33,7 +33,7 @@ export class ClubRepository implements IClubRepository {
     const { data: savedData, error } = await supabase
       .from('clubs')
       .insert(data)
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
+      .select()
       .single();
 
     if (error) {
@@ -41,14 +41,19 @@ export class ClubRepository implements IClubRepository {
       throw new Error(`Failed to save club: ${error.message}`);
     }
 
-    return this.mapToDomain(savedData);
+    // Return club with coordinates from input (not from DB location field)
+    return Club.reconstitute({
+      ...savedData,
+      latitude: club.latitude,
+      longitude: club.longitude,
+    });
   }
 
   async findById(id: string): Promise<Club | null> {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -64,7 +69,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
+      .select('*')
       .eq('owner_id', ownerId);
 
     if (error) throw error;
@@ -76,7 +81,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
+      .select('*')
       .ilike('city', `%${city}%`);
 
     if (error) throw error;
@@ -107,7 +112,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)');
+      .select('*');
 
     if (error) throw error;
 
@@ -134,13 +139,18 @@ export class ClubRepository implements IClubRepository {
       .from('clubs')
       .update(data)
       .eq('id', club.id)
-      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
+      .select()
       .single();
 
     if (error) throw error;
     if (!updatedData) throw new EntityNotFoundException('Club', club.id);
 
-    return this.mapToDomain(updatedData);
+    // Return club with coordinates from input (not from DB location field)
+    return Club.reconstitute({
+      ...updatedData,
+      latitude: club.latitude,
+      longitude: club.longitude,
+    });
   }
 
   async delete(id: string): Promise<void> {
