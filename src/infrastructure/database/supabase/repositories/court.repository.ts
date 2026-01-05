@@ -41,7 +41,8 @@ export class CourtRepository implements ICourtRepository {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      throw error;
+      console.error('Error finding court by ID:', error);
+      throw new Error(`Failed to find court: ${error.message}`);
     }
 
     return data ? this.mapToDomain(data) : null;

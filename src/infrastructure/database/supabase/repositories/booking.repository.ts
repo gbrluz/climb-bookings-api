@@ -86,7 +86,10 @@ export class BookingRepository implements IBookingRepository {
       .gte('start_time', startDate.toISOString())
       .lte('end_time', endDate.toISOString());
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error finding bookings by court and date range:', error);
+      throw new Error(`Failed to find bookings: ${error.message}`);
+    }
 
     return data.map((item) => this.mapToDomain(item));
   }
