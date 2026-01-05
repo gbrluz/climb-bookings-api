@@ -3,7 +3,7 @@ import { ValidationException } from '../../../common/exceptions/domain.exception
 export class Club {
   private constructor(
     public readonly id: string,
-    public readonly ownerId: string,
+    public readonly ownerId: string | null,
     private _name: string,
     private _city: string,
     private _state: string,
@@ -50,7 +50,7 @@ export class Club {
 
   static reconstitute(data: {
     id: string;
-    ownerId: string;
+    ownerId: string | null;
     name: string;
     city: string;
     state: string;
@@ -91,9 +91,8 @@ export class Club {
       throw new ValidationException('State is required');
     }
 
-    if (!this.ownerId) {
-      throw new ValidationException('Owner ID is required');
-    }
+    // ownerId is optional for legacy data (reconstitute)
+    // but required for new clubs (create method validates this)
 
     if (this._latitude !== undefined && (this._latitude < -90 || this._latitude > 90)) {
       throw new ValidationException('Invalid latitude');
