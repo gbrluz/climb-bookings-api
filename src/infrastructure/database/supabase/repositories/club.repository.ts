@@ -29,7 +29,10 @@ export class ClubRepository implements IClubRepository {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving club to Supabase:', error);
+      throw new Error(`Failed to save club: ${error.message}`);
+    }
 
     return this.mapToDomain(savedData);
   }
