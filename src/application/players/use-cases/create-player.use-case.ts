@@ -15,20 +15,19 @@ export class CreatePlayerUseCase {
       throw new InvalidOperationException('Player profile already exists');
     }
 
-    // Check if username is already taken
-    const existingUsername = await this.playerRepository.findByUsername(dto.username);
-    if (existingUsername) {
-      throw new InvalidOperationException('Username already taken');
-    }
-
     // Create player
     const player = Player.create({
       id: userId, // Use auth user ID
-      username: dto.username,
       fullName: dto.full_name,
+      gender: dto.gender ?? null,
+      birthDate: dto.birth_date ? new Date(dto.birth_date) : null,
+      preferredSide: dto.preferred_side ?? null,
       category: dto.category ?? null,
+      state: dto.state ?? null,
+      city: dto.city ?? null,
+      availability: dto.availability ?? null,
+      photoUrl: dto.photo_url ?? null,
       phone: dto.phone ?? null,
-      avatarUrl: dto.avatar_url ?? null,
     });
 
     return this.playerRepository.save(player);

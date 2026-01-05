@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IPlayerRepository } from '../../../../domain/players/repositories/player.repository.interface';
-import { Player } from '../../../../domain/players/entities/player.entity';
+import { Player, Gender, PreferredSide, Availability } from '../../../../domain/players/entities/player.entity';
 import { SupabaseService } from '../supabase.service';
 import { EntityNotFoundException } from '../../../../common/exceptions/domain.exception';
 
@@ -12,11 +12,16 @@ export class PlayerRepository implements IPlayerRepository {
     const supabase = this.supabaseService.getClient();
     const data = {
       id: player.id,
-      username: player.username,
       full_name: player.fullName,
+      gender: player.gender,
+      birth_date: player.birthDate?.toISOString().split('T')[0] ?? null,
+      preferred_side: player.preferredSide,
       category: player.category,
+      state: player.state,
+      city: player.city,
+      availability: player.availability,
+      photo_url: player.photoUrl,
       phone: player.phone,
-      avatar_url: player.avatarUrl,
     };
 
     const { data: savedData, error } = await supabase
@@ -51,30 +56,24 @@ export class PlayerRepository implements IPlayerRepository {
   }
 
   async findByUsername(username: string): Promise<Player | null> {
-    const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('players')
-      .select('*')
-      .eq('username', username)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error finding player by username:', error);
-      throw new Error(`Failed to find player: ${error.message}`);
-    }
-
-    return data ? this.mapToDomain(data) : null;
+    // Note: The database doesn't have a username field
+    // This method is kept for interface compatibility but will always return null
+    return null;
   }
 
   async update(player: Player): Promise<Player> {
     const supabase = this.supabaseService.getClient();
     const data = {
-      username: player.username,
       full_name: player.fullName,
+      gender: player.gender,
+      birth_date: player.birthDate?.toISOString().split('T')[0] ?? null,
+      preferred_side: player.preferredSide,
       category: player.category,
+      state: player.state,
+      city: player.city,
+      availability: player.availability,
+      photo_url: player.photoUrl,
       phone: player.phone,
-      avatar_url: player.avatarUrl,
       updated_at: new Date().toISOString(),
     };
 
@@ -107,11 +106,26 @@ export class PlayerRepository implements IPlayerRepository {
   private mapToDomain(data: any): Player {
     return Player.reconstitute({
       id: data.id,
-      username: data.username,
       fullName: data.full_name,
+      gender: data.gender as Gender | null,
+      birthDate: data.birth_date ? new Date(data.birth_date) : null,
+      preferredSide: data.preferred_side as PreferredSide | null,
       category: data.category,
+      state: data.state,
+      city: data.city,
+      availability: data.availability as Availability | null,
+      photoUrl: data.photo_url,
+      rankingPoints: data.ranking_points ?? 0,
+      totalMatches: data.total_matches ?? 0,
+      totalWins: data.total_wins ?? 0,
+      winRate: data.win_rate ?? '0.00',
+      isAdmin: data.is_admin ?? false,
+      globalRankingPoints: data.global_ranking_points ?? '0.0',
+      isProvisional: data.is_provisional ?? true,
+      provisionalGamesPlayed: data.provisional_games_played ?? 0,
+      canJoinLeagues: data.can_join_leagues ?? false,
+      captainCount: data.captain_count ?? 0,
       phone: data.phone,
-      avatarUrl: data.avatar_url,
       createdAt: data.created_at ? new Date(data.created_at) : undefined,
       updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
     });

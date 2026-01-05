@@ -29,9 +29,15 @@ export class UpdatePlayerUseCase {
     // Update player profile
     player.updateProfile({
       fullName: dto.full_name,
+      gender: dto.gender,
+      birthDate: dto.birth_date ? new Date(dto.birth_date) : undefined,
+      preferredSide: dto.preferred_side,
       category: dto.category,
+      state: dto.state,
+      city: dto.city,
+      availability: dto.availability,
+      photoUrl: dto.photo_url,
       phone: dto.phone,
-      avatarUrl: dto.avatar_url,
     });
 
     return this.playerRepository.update(player);
