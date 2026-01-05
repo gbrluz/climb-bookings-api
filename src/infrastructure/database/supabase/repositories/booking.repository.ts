@@ -10,15 +10,23 @@ export class BookingRepository implements IBookingRepository {
 
   async save(booking: Booking): Promise<Booking> {
     const supabase = this.supabaseService.getClient();
+
+    // Extract date and time components
+    const bookingDate = booking.bookingDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const startTime = this.formatTime(booking.startTime); // HH:MM:SS
+    const endTime = this.formatTime(booking.endTime); // HH:MM:SS
+
     const data = {
       id: booking.id,
       court_id: booking.courtId,
       user_id: booking.userId,
-      start_time: booking.startTime.toISOString(),
-      end_time: booking.endTime.toISOString(),
+      booking_date: bookingDate,
+      start_time: startTime,
+      end_time: endTime,
       status: booking.status,
-      booking_date: booking.bookingDate.toISOString(),
-      price: booking.price,
+      amount_paid: (booking.price || 0).toString(),
+      open_for_matchmaking: false,
+      target_category: null,
     };
 
     const { data: savedData, error } = await supabase
@@ -27,9 +35,19 @@ export class BookingRepository implements IBookingRepository {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving booking:', error);
+      throw new Error(`Failed to save booking: ${error.message}`);
+    }
 
     return this.mapToDomain(savedData);
+  }
+
+  private formatTime(date: Date): string {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
   }
 
   async findById(id: string): Promise<Booking | null> {
@@ -79,12 +97,17 @@ export class BookingRepository implements IBookingRepository {
     endDate: Date,
   ): Promise<Booking[]> {
     const supabase = this.supabaseService.getClient();
+
+    // Extract just the date part (YYYY-MM-DD) for comparison
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+
     const { data, error } = await supabase
       .from('reservations')
       .select('*')
       .eq('court_id', courtId)
-      .gte('start_time', startDate.toISOString())
-      .lte('end_time', endDate.toISOString());
+      .gte('booking_date', startDateStr)
+      .lte('booking_date', endDateStr);
 
     if (error) {
       console.error('Error finding bookings by court and date range:', error);
@@ -100,15 +123,25 @@ export class BookingRepository implements IBookingRepository {
     endTime: Date,
   ): Promise<Booking[]> {
     const supabase = this.supabaseService.getClient();
+
+    // Extract date and time for comparison
+    const bookingDate = startTime.toISOString().split('T')[0];
+    const startTimeStr = this.formatTime(startTime);
+    const endTimeStr = this.formatTime(endTime);
+
     const { data, error } = await supabase
       .from('reservations')
       .select('*')
       .eq('court_id', courtId)
-      .lt('start_time', endTime.toISOString())
-      .gt('end_time', startTime.toISOString())
-      .in('status', [BookingStatus.PENDING, BookingStatus.CONFIRMED]);
+      .eq('booking_date', bookingDate)
+      .lt('start_time', endTimeStr)
+      .gt('end_time', startTimeStr)
+      .in('status', ['pending', 'confirmed']);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error finding overlapping bookings:', error);
+      throw new Error(`Failed to find overlapping bookings: ${error.message}`);
+    }
 
     return data.map((item) => this.mapToDomain(item));
   }
@@ -117,8 +150,7 @@ export class BookingRepository implements IBookingRepository {
     const supabase = this.supabaseService.getClient();
     const data = {
       status: booking.status,
-      price: booking.price,
-      updated_at: new Date().toISOString(),
+      amount_paid: (booking.price || 0).toString(),
     };
 
     const { data: updatedData, error } = await supabase
@@ -128,7 +160,10 @@ export class BookingRepository implements IBookingRepository {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating booking:', error);
+      throw new Error(`Failed to update booking: ${error.message}`);
+    }
     if (!updatedData) throw new EntityNotFoundException('Booking', booking.id);
 
     return this.mapToDomain(updatedData);
@@ -142,17 +177,33 @@ export class BookingRepository implements IBookingRepository {
   }
 
   private mapToDomain(data: any): Booking {
+    // Combine booking_date (DATE) with start_time/end_time (TIME)
+    const bookingDate = new Date(data.booking_date);
+
+    // Create full datetime by combining date + time
+    const startTime = this.combineDateAndTime(data.booking_date, data.start_time);
+    const endTime = this.combineDateAndTime(data.booking_date, data.end_time);
+
     return Booking.reconstitute({
       id: data.id,
       courtId: data.court_id,
       userId: data.user_id,
-      startTime: new Date(data.start_time),
-      endTime: new Date(data.end_time),
+      startTime,
+      endTime,
       status: data.status as BookingStatus,
-      bookingDate: new Date(data.booking_date),
-      price: data.price,
+      bookingDate,
+      price: parseFloat(data.amount_paid || '0'),
       createdAt: data.created_at ? new Date(data.created_at) : undefined,
       updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
     });
+  }
+
+  private combineDateAndTime(dateStr: string, timeStr: string): Date {
+    // dateStr format: "2024-12-30"
+    // timeStr format: "18:00:00"
+    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    const date = new Date(dateStr);
+    date.setHours(hours, minutes, seconds || 0, 0);
+    return date;
   }
 }
