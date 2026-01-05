@@ -10,7 +10,9 @@ export class ClubRepository implements IClubRepository {
 
   async save(club: Club): Promise<Club> {
     const supabase = this.supabaseService.getClient();
-    const data = {
+
+    // Prepare data for Supabase with location geometry
+    const data: any = {
       id: club.id,
       owner_id: club.ownerId,
       name: club.name,
@@ -19,14 +21,19 @@ export class ClubRepository implements IClubRepository {
       address: club.address,
       phone: club.phone,
       images: club.images,
-      latitude: club.latitude,
-      longitude: club.longitude,
+      commission_rate: '0.00', // Default commission rate
     };
+
+    // Add location geometry if coordinates are provided
+    if (club.latitude !== undefined && club.longitude !== undefined) {
+      // PostGIS format: POINT(longitude latitude)
+      data.location = `POINT(${club.longitude} ${club.latitude})`;
+    }
 
     const { data: savedData, error } = await supabase
       .from('clubs')
       .insert(data)
-      .select()
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
       .single();
 
     if (error) {
@@ -41,7 +48,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*')
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
       .eq('id', id)
       .single();
 
@@ -57,7 +64,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*')
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
       .eq('owner_id', ownerId);
 
     if (error) throw error;
@@ -69,7 +76,7 @@ export class ClubRepository implements IClubRepository {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('clubs')
-      .select('*')
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
       .ilike('city', `%${city}%`);
 
     if (error) throw error;
@@ -98,7 +105,9 @@ export class ClubRepository implements IClubRepository {
 
   async findAll(): Promise<Club[]> {
     const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase.from('clubs').select('*');
+    const { data, error } = await supabase
+      .from('clubs')
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)');
 
     if (error) throw error;
 
@@ -107,23 +116,25 @@ export class ClubRepository implements IClubRepository {
 
   async update(club: Club): Promise<Club> {
     const supabase = this.supabaseService.getClient();
-    const data = {
+    const data: any = {
       name: club.name,
       city: club.city,
       state: club.state,
       address: club.address,
       phone: club.phone,
       images: club.images,
-      latitude: club.latitude,
-      longitude: club.longitude,
-      updated_at: new Date().toISOString(),
     };
+
+    // Update location geometry if coordinates are provided
+    if (club.latitude !== undefined && club.longitude !== undefined) {
+      data.location = `POINT(${club.longitude} ${club.latitude})`;
+    }
 
     const { data: updatedData, error } = await supabase
       .from('clubs')
       .update(data)
       .eq('id', club.id)
-      .select()
+      .select('*, latitude:ST_Y(location::geometry), longitude:ST_X(location::geometry)')
       .single();
 
     if (error) throw error;
