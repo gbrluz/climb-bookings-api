@@ -1,8 +1,7 @@
 import { ValidationException } from '../../../common/exceptions/domain.exception';
 
 export enum SurfaceType {
-  CLAY = 'clay',
-  SYNTHETIC_GRASS = 'synthetic_grass',
+  GLASS = 'glass',
   CONCRETE = 'concrete',
 }
 

@@ -4,6 +4,7 @@ import { BookingRepository } from './supabase/repositories/booking.repository';
 import { ClubRepository } from './supabase/repositories/club.repository';
 import { CourtRepository } from './supabase/repositories/court.repository';
 import { AuctionRepository } from './supabase/repositories/auction.repository';
+import { PlayerRepository } from './supabase/repositories/player.repository';
 import { CacheModule } from '../cache/cache.module';
 
 @Global()
@@ -27,6 +28,10 @@ import { CacheModule } from '../cache/cache.module';
       provide: 'IAuctionRepository',
       useClass: AuctionRepository,
     },
+    {
+      provide: 'IPlayerRepository',
+      useClass: PlayerRepository,
+    },
   ],
   exports: [
     SupabaseService,
@@ -34,6 +39,7 @@ import { CacheModule } from '../cache/cache.module';
     'IClubRepository',
     'ICourtRepository',
     'IAuctionRepository',
+    'IPlayerRepository',
   ],
 })
 export class DatabaseModule {}

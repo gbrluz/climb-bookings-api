@@ -22,7 +22,7 @@ export class CreateCourtDto {
   @ApiProperty({
     description: 'Type of surface',
     enum: SurfaceType,
-    example: SurfaceType.SYNTHETIC_GRASS,
+    example: SurfaceType.GLASS,
   })
   @IsEnum(SurfaceType)
   @IsNotEmpty()

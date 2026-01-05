@@ -14,6 +14,7 @@ import { BookingsModule } from './presentation/http/bookings/bookings.module';
 import { ClubsModule } from './presentation/http/clubs/clubs.module';
 import { CourtsModule } from './presentation/http/courts/courts.module';
 import { AuctionsModule } from './presentation/http/auctions/auctions.module';
+import { PlayersModule } from './presentation/http/players/players.module';
 
 // Common
 import { AuthGuard } from './common/guards/auth.guard';
@@ -42,6 +43,7 @@ import { AuctionsApplicationModule } from './application/auctions/auctions-appli
     ClubsModule,
     CourtsModule,
     AuctionsModule,
+    PlayersModule,
     AuctionsApplicationModule, // For cron jobs
   ],
   controllers: [HealthController],

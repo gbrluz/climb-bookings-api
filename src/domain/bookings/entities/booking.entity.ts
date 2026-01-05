@@ -20,6 +20,8 @@ export class Booking {
     private _status: BookingStatus,
     private _bookingDate: Date,
     private _price?: number,
+    private _openForMatchmaking: boolean = false,
+    private _targetCategory: string | null = null,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {
@@ -35,6 +37,8 @@ export class Booking {
     status?: BookingStatus;
     bookingDate?: Date;
     price?: number;
+    openForMatchmaking?: boolean;
+    targetCategory?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
   }): Booking {
@@ -47,6 +51,8 @@ export class Booking {
       data.status || BookingStatus.PENDING,
       data.bookingDate || new Date(),
       data.price,
+      data.openForMatchmaking ?? false,
+      data.targetCategory ?? null,
       data.createdAt,
       data.updatedAt,
     );
@@ -61,6 +67,8 @@ export class Booking {
     status: BookingStatus;
     bookingDate: Date;
     price?: number;
+    openForMatchmaking?: boolean;
+    targetCategory?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
   }): Booking {
@@ -73,6 +81,8 @@ export class Booking {
       data.status,
       data.bookingDate,
       data.price,
+      data.openForMatchmaking ?? false,
+      data.targetCategory ?? null,
       data.createdAt,
       data.updatedAt,
     );
@@ -122,6 +132,14 @@ export class Booking {
     return this._price;
   }
 
+  get openForMatchmaking(): boolean {
+    return this._openForMatchmaking;
+  }
+
+  get targetCategory(): string | null {
+    return this._targetCategory;
+  }
+
   // Business methods
   confirm(): void {
     if (this._status === BookingStatus.CANCELLED) {
@@ -158,6 +176,16 @@ export class Booking {
       throw new ValidationException('Price cannot be negative');
     }
     this._price = price;
+  }
+
+  enableMatchmaking(targetCategory?: string | null): void {
+    this._openForMatchmaking = true;
+    this._targetCategory = targetCategory ?? null;
+  }
+
+  disableMatchmaking(): void {
+    this._openForMatchmaking = false;
+    this._targetCategory = null;
   }
 
   isActive(): boolean {
@@ -198,6 +226,8 @@ export class Booking {
       status: this._status,
       bookingDate: this._bookingDate,
       price: this._price,
+      openForMatchmaking: this._openForMatchmaking,
+      targetCategory: this._targetCategory,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

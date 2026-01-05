@@ -25,8 +25,8 @@ export class BookingRepository implements IBookingRepository {
       end_time: endTime,
       status: booking.status,
       amount_paid: (booking.price || 0).toString(),
-      open_for_matchmaking: false,
-      target_category: null,
+      open_for_matchmaking: booking.openForMatchmaking,
+      target_category: booking.targetCategory,
     };
 
     const { data: savedData, error } = await supabase
@@ -151,6 +151,8 @@ export class BookingRepository implements IBookingRepository {
     const data = {
       status: booking.status,
       amount_paid: (booking.price || 0).toString(),
+      open_for_matchmaking: booking.openForMatchmaking,
+      target_category: booking.targetCategory,
     };
 
     const { data: updatedData, error } = await supabase
@@ -193,6 +195,8 @@ export class BookingRepository implements IBookingRepository {
       status: data.status as BookingStatus,
       bookingDate,
       price: parseFloat(data.amount_paid || '0'),
+      openForMatchmaking: data.open_for_matchmaking ?? false,
+      targetCategory: data.target_category ?? null,
       createdAt: data.created_at ? new Date(data.created_at) : undefined,
       updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
     });
