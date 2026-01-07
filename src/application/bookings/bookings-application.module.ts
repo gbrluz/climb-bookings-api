@@ -19,10 +19,10 @@ import { DeleteBookingUseCase } from './use-cases/delete-booking.use-case';
     },
     {
       provide: CheckAvailabilityUseCase,
-      useFactory: (bookingRepo, courtRepo) => {
-        return new CheckAvailabilityUseCase(bookingRepo, courtRepo);
+      useFactory: (bookingRepo, courtRepo, clubRepo) => {
+        return new CheckAvailabilityUseCase(bookingRepo, courtRepo, clubRepo);
       },
-      inject: ['IBookingRepository', 'ICourtRepository'],
+      inject: ['IBookingRepository', 'ICourtRepository', 'IClubRepository'],
     },
     {
       provide: GetBookingUseCase,

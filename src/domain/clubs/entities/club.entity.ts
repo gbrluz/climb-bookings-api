@@ -7,6 +7,8 @@ export class Club {
     private _name: string,
     private _city: string,
     private _state: string,
+    private _openingTime: string, // Format: "HH:mm" (e.g., "08:00")
+    private _closingTime: string, // Format: "HH:mm" (e.g., "22:00")
     private _address?: string,
     private _phone?: string,
     private _images?: string[],
@@ -24,6 +26,8 @@ export class Club {
     name: string;
     city: string;
     state: string;
+    openingTime: string;
+    closingTime: string;
     address?: string;
     phone?: string;
     images?: string[];
@@ -38,6 +42,8 @@ export class Club {
       data.name,
       data.city,
       data.state,
+      data.openingTime,
+      data.closingTime,
       data.address,
       data.phone,
       data.images || [],
@@ -54,6 +60,8 @@ export class Club {
     name: string;
     city: string;
     state: string;
+    openingTime: string;
+    closingTime: string;
     address?: string;
     phone?: string;
     images?: string[];
@@ -68,6 +76,8 @@ export class Club {
       data.name,
       data.city,
       data.state,
+      data.openingTime,
+      data.closingTime,
       data.address,
       data.phone,
       data.images,
@@ -89,6 +99,26 @@ export class Club {
 
     if (!this._state || this._state.trim().length === 0) {
       throw new ValidationException('State is required');
+    }
+
+    // Validate time format (HH:mm)
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(this._openingTime)) {
+      throw new ValidationException('Opening time must be in HH:mm format (e.g., "08:00")');
+    }
+
+    if (!timeRegex.test(this._closingTime)) {
+      throw new ValidationException('Closing time must be in HH:mm format (e.g., "22:00")');
+    }
+
+    // Validate that closing time is after opening time
+    const [openHour, openMin] = this._openingTime.split(':').map(Number);
+    const [closeHour, closeMin] = this._closingTime.split(':').map(Number);
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+
+    if (closeMinutes <= openMinutes) {
+      throw new ValidationException('Closing time must be after opening time');
     }
 
     // ownerId is optional for legacy data (reconstitute)
@@ -134,6 +164,14 @@ export class Club {
 
   get longitude(): number | undefined {
     return this._longitude;
+  }
+
+  get openingTime(): string {
+    return this._openingTime;
+  }
+
+  get closingTime(): string {
+    return this._closingTime;
   }
 
   // Business methods
@@ -192,6 +230,45 @@ export class Club {
     return this._latitude !== undefined && this._longitude !== undefined;
   }
 
+  updateOperatingHours(openingTime: string, closingTime: string): void {
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(openingTime)) {
+      throw new ValidationException('Opening time must be in HH:mm format');
+    }
+    if (!timeRegex.test(closingTime)) {
+      throw new ValidationException('Closing time must be in HH:mm format');
+    }
+
+    const [openHour, openMin] = openingTime.split(':').map(Number);
+    const [closeHour, closeMin] = closingTime.split(':').map(Number);
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+
+    if (closeMinutes <= openMinutes) {
+      throw new ValidationException('Closing time must be after opening time');
+    }
+
+    this._openingTime = openingTime;
+    this._closingTime = closingTime;
+  }
+
+  isWithinOperatingHours(time: string): boolean {
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(time)) {
+      return false;
+    }
+
+    const [hour, min] = time.split(':').map(Number);
+    const [openHour, openMin] = this._openingTime.split(':').map(Number);
+    const [closeHour, closeMin] = this._closingTime.split(':').map(Number);
+
+    const timeMinutes = hour * 60 + min;
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+
+    return timeMinutes >= openMinutes && timeMinutes < closeMinutes;
+  }
+
   toPlainObject() {
     return {
       id: this.id,
@@ -199,6 +276,8 @@ export class Club {
       name: this._name,
       city: this._city,
       state: this._state,
+      openingTime: this._openingTime,
+      closingTime: this._closingTime,
       address: this._address,
       phone: this._phone,
       images: this._images,

@@ -13,6 +13,8 @@ export class CreateClubUseCase {
       name: dto.name,
       city: dto.city,
       state: dto.state,
+      openingTime: dto.opening_time,
+      closingTime: dto.closing_time,
       address: dto.address,
       phone: dto.phone,
       images: dto.images,

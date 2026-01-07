@@ -37,13 +37,22 @@ export class CreateCourtDto {
   is_indoor: boolean;
 
   @ApiProperty({
-    description: 'Base price per hour',
+    description: 'Base price per slot',
     example: 150.0,
   })
   @IsNumber()
   @Min(0)
   @IsNotEmpty()
   base_price: number;
+
+  @ApiProperty({
+    description: 'Duration of each time slot in minutes (must be between 30-180 and multiple of 15)',
+    example: 90,
+  })
+  @IsNumber()
+  @Min(30)
+  @IsNotEmpty()
+  slot_duration: number;
 
   @ApiProperty({
     description: 'Whether the court is active',

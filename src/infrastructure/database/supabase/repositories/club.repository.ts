@@ -18,6 +18,8 @@ export class ClubRepository implements IClubRepository {
       name: club.name,
       city: club.city,
       state: club.state,
+      opening_time: club.openingTime,
+      closing_time: club.closingTime,
       address: club.address,
       phone: club.phone,
       images: club.images,
@@ -135,6 +137,8 @@ export class ClubRepository implements IClubRepository {
       name: club.name,
       city: club.city,
       state: club.state,
+      opening_time: club.openingTime,
+      closing_time: club.closingTime,
       address: club.address,
       phone: club.phone,
       images: club.images,
@@ -176,6 +180,8 @@ export class ClubRepository implements IClubRepository {
       name: data.name,
       city: data.city,
       state: data.state,
+      openingTime: data.opening_time || '08:00', // Default fallback for legacy data
+      closingTime: data.closing_time || '22:00', // Default fallback for legacy data
       address: data.address,
       phone: data.phone,
       images: data.images,

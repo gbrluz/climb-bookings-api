@@ -17,6 +17,7 @@ export class CourtRepository implements ICourtRepository {
       surface_type: court.surfaceType,
       is_indoor: court.isIndoor,
       base_price: court.basePrice,
+      slot_duration: court.slotDuration,
       is_active: court.isActive,
     };
 
@@ -80,6 +81,7 @@ export class CourtRepository implements ICourtRepository {
       surface_type: court.surfaceType,
       is_indoor: court.isIndoor,
       base_price: court.basePrice,
+      slot_duration: court.slotDuration,
       is_active: court.isActive,
       updated_at: new Date().toISOString(),
     };
@@ -112,6 +114,7 @@ export class CourtRepository implements ICourtRepository {
       surfaceType: data.surface_type as SurfaceType,
       isIndoor: data.is_indoor,
       basePrice: data.base_price,
+      slotDuration: data.slot_duration || 90, // Default 90 minutes for legacy data
       isActive: data.is_active,
       createdAt: data.created_at ? new Date(data.created_at) : undefined,
       updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,

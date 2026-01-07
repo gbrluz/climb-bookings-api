@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import type { IBookingRepository } from '../../../domain/bookings/repositories/booking.repository.interface';
 import type { ICourtRepository } from '../../../domain/courts/repositories/court.repository.interface';
+import type { IClubRepository } from '../../../domain/clubs/repositories/club.repository.interface';
 import { TimeSlot } from '../../../domain/bookings/value-objects/time-slot.vo';
 import { EntityNotFoundException } from '../../../common/exceptions/domain.exception';
 import { CheckAvailabilityDto } from '../dto/check-availability.dto';
 
 @Injectable()
 export class CheckAvailabilityUseCase {
-  // Standard padel game duration: 90 minutes
-  private readonly SLOT_DURATION_MINUTES = 90;
-  private readonly START_HOUR = 6; // 6:00 AM
-  private readonly END_HOUR = 23; // 11:00 PM
-
   constructor(
     private readonly bookingRepository: IBookingRepository,
     private readonly courtRepository: ICourtRepository,
+    private readonly clubRepository: IClubRepository,
   ) {}
 
   async execute(dto: CheckAvailabilityDto): Promise<TimeSlot[]> {
@@ -23,6 +20,16 @@ export class CheckAvailabilityUseCase {
     if (!court) {
       throw new EntityNotFoundException('Court', dto.courtId);
     }
+
+    // Get club to access operating hours
+    const club = await this.clubRepository.findById(court.clubId);
+    if (!club) {
+      throw new EntityNotFoundException('Club', court.clubId);
+    }
+
+    // Parse opening and closing hours from club
+    const [openHour, openMinute] = club.openingTime.split(':').map(Number);
+    const [closeHour, closeMinute] = club.closingTime.split(':').map(Number);
 
     // Parse date
     const date = new Date(dto.date);
@@ -38,17 +45,27 @@ export class CheckAvailabilityUseCase {
       endOfDay,
     );
 
-    // Generate time slots
+    // Generate time slots based on club operating hours and court slot duration
     const slots: TimeSlot[] = [];
-    let currentHour = this.START_HOUR;
-    let currentMinute = 0;
+    let currentHour = openHour;
+    let currentMinute = openMinute;
 
-    while (currentHour < this.END_HOUR) {
+    // Calculate closing time in minutes
+    const closingTimeMinutes = closeHour * 60 + closeMinute;
+
+    while (true) {
+      const currentTimeMinutes = currentHour * 60 + currentMinute;
+
+      // Check if current time + slot duration exceeds closing time
+      if (currentTimeMinutes + court.slotDuration > closingTimeMinutes) {
+        break;
+      }
+
       const slotStart = new Date(date);
       slotStart.setHours(currentHour, currentMinute, 0, 0);
 
       const slotEnd = new Date(slotStart);
-      slotEnd.setMinutes(slotEnd.getMinutes() + this.SLOT_DURATION_MINUTES);
+      slotEnd.setMinutes(slotEnd.getMinutes() + court.slotDuration);
 
       // Check if slot is available
       const isAvailable = !bookings.some((booking) =>
@@ -63,7 +80,7 @@ export class CheckAvailabilityUseCase {
       );
 
       // Move to next slot
-      currentMinute += this.SLOT_DURATION_MINUTES;
+      currentMinute += court.slotDuration;
       if (currentMinute >= 60) {
         currentHour += Math.floor(currentMinute / 60);
         currentMinute = currentMinute % 60;

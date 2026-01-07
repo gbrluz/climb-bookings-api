@@ -7,6 +7,7 @@ import {
   Min,
   Max,
   IsPhoneNumber,
+  Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -34,6 +35,28 @@ export class CreateClubDto {
   @IsString()
   @IsNotEmpty()
   state: string;
+
+  @ApiProperty({
+    description: 'Opening time (HH:mm format)',
+    example: '08:00',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'Opening time must be in HH:mm format (e.g., "08:00")',
+  })
+  opening_time: string;
+
+  @ApiProperty({
+    description: 'Closing time (HH:mm format)',
+    example: '22:00',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'Closing time must be in HH:mm format (e.g., "22:00")',
+  })
+  closing_time: string;
 
   @ApiProperty({
     description: 'Full address of the club',

@@ -13,6 +13,7 @@ export class Court {
     private _surfaceType: SurfaceType,
     private _isIndoor: boolean,
     private _basePrice: number,
+    private _slotDuration: number, // Duration in minutes (e.g., 60, 90, 120)
     private _isActive: boolean,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
@@ -27,6 +28,7 @@ export class Court {
     surfaceType: SurfaceType;
     isIndoor: boolean;
     basePrice: number;
+    slotDuration: number;
     isActive?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -38,6 +40,7 @@ export class Court {
       data.surfaceType,
       data.isIndoor,
       data.basePrice,
+      data.slotDuration,
       data.isActive ?? true,
       data.createdAt,
       data.updatedAt,
@@ -51,6 +54,7 @@ export class Court {
     surfaceType: SurfaceType;
     isIndoor: boolean;
     basePrice: number;
+    slotDuration: number;
     isActive: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -62,6 +66,7 @@ export class Court {
       data.surfaceType,
       data.isIndoor,
       data.basePrice,
+      data.slotDuration,
       data.isActive,
       data.createdAt,
       data.updatedAt,
@@ -75,6 +80,20 @@ export class Court {
 
     if (this._basePrice < 0) {
       throw new ValidationException('Base price cannot be negative');
+    }
+
+    if (this._slotDuration <= 0) {
+      throw new ValidationException('Slot duration must be greater than 0');
+    }
+
+    // Validate that slot duration is a reasonable value (between 30 and 180 minutes)
+    if (this._slotDuration < 30 || this._slotDuration > 180) {
+      throw new ValidationException('Slot duration must be between 30 and 180 minutes');
+    }
+
+    // Validate that slot duration is a multiple of 15 minutes
+    if (this._slotDuration % 15 !== 0) {
+      throw new ValidationException('Slot duration must be a multiple of 15 minutes');
     }
 
     if (!this.clubId) {
@@ -101,6 +120,10 @@ export class Court {
 
   get isActive(): boolean {
     return this._isActive;
+  }
+
+  get slotDuration(): number {
+    return this._slotDuration;
   }
 
   // Business methods
@@ -130,6 +153,19 @@ export class Court {
     return this._isActive;
   }
 
+  updateSlotDuration(duration: number): void {
+    if (duration <= 0) {
+      throw new ValidationException('Slot duration must be greater than 0');
+    }
+    if (duration < 30 || duration > 180) {
+      throw new ValidationException('Slot duration must be between 30 and 180 minutes');
+    }
+    if (duration % 15 !== 0) {
+      throw new ValidationException('Slot duration must be a multiple of 15 minutes');
+    }
+    this._slotDuration = duration;
+  }
+
   toPlainObject() {
     return {
       id: this.id,
@@ -138,6 +174,7 @@ export class Court {
       surfaceType: this._surfaceType,
       isIndoor: this._isIndoor,
       basePrice: this._basePrice,
+      slotDuration: this._slotDuration,
       isActive: this._isActive,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

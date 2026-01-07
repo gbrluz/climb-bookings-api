@@ -34,6 +34,7 @@ export class AddCourtToClubUseCase {
       surfaceType: dto.surface_type,
       isIndoor: dto.is_indoor,
       basePrice: dto.base_price,
+      slotDuration: dto.slot_duration,
       isActive: dto.is_active ?? true,
     });
 
