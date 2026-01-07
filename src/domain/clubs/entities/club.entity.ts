@@ -9,6 +9,8 @@ export class Club {
     private _state: string,
     private _openingTime: string, // Format: "HH:mm" (e.g., "08:00")
     private _closingTime: string, // Format: "HH:mm" (e.g., "22:00")
+    private _zipCode?: string, // CEP: Format "XXXXX-XXX" or "XXXXXXXX"
+    private _hasParking?: boolean,
     private _address?: string,
     private _phone?: string,
     private _images?: string[],
@@ -28,6 +30,8 @@ export class Club {
     state: string;
     openingTime: string;
     closingTime: string;
+    zipCode?: string;
+    hasParking?: boolean;
     address?: string;
     phone?: string;
     images?: string[];
@@ -44,6 +48,8 @@ export class Club {
       data.state,
       data.openingTime,
       data.closingTime,
+      data.zipCode,
+      data.hasParking,
       data.address,
       data.phone,
       data.images || [],
@@ -62,6 +68,8 @@ export class Club {
     state: string;
     openingTime: string;
     closingTime: string;
+    zipCode?: string;
+    hasParking?: boolean;
     address?: string;
     phone?: string;
     images?: string[];
@@ -78,6 +86,8 @@ export class Club {
       data.state,
       data.openingTime,
       data.closingTime,
+      data.zipCode,
+      data.hasParking,
       data.address,
       data.phone,
       data.images,
@@ -131,6 +141,14 @@ export class Club {
     if (this._longitude !== undefined && (this._longitude < -180 || this._longitude > 180)) {
       throw new ValidationException('Invalid longitude');
     }
+
+    // Validate CEP format (Brazilian zip code: XXXXX-XXX or XXXXXXXX)
+    if (this._zipCode !== undefined && this._zipCode !== null) {
+      const zipCodeRegex = /^(\d{5}-\d{3}|\d{8})$/;
+      if (!zipCodeRegex.test(this._zipCode)) {
+        throw new ValidationException('Invalid zip code format. Use XXXXX-XXX or XXXXXXXX');
+      }
+    }
   }
 
   // Getters
@@ -172,6 +190,14 @@ export class Club {
 
   get closingTime(): string {
     return this._closingTime;
+  }
+
+  get zipCode(): string | undefined {
+    return this._zipCode;
+  }
+
+  get hasParking(): boolean | undefined {
+    return this._hasParking;
   }
 
   // Business methods
@@ -278,6 +304,8 @@ export class Club {
       state: this._state,
       openingTime: this._openingTime,
       closingTime: this._closingTime,
+      zipCode: this._zipCode,
+      hasParking: this._hasParking,
       address: this._address,
       phone: this._phone,
       images: this._images,

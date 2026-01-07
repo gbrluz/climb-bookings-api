@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsArray,
   IsNumber,
+  IsBoolean,
   Min,
   Max,
   IsPhoneNumber,
@@ -57,6 +58,27 @@ export class CreateClubDto {
     message: 'Closing time must be in HH:mm format (e.g., "22:00")',
   })
   closing_time: string;
+
+  @ApiProperty({
+    description: 'ZIP code (CEP) - Format: XXXXX-XXX or XXXXXXXX',
+    example: '01310-100',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(\d{5}-\d{3}|\d{8})$/, {
+    message: 'ZIP code must be in format XXXXX-XXX or XXXXXXXX',
+  })
+  zip_code?: string;
+
+  @ApiProperty({
+    description: 'Whether the club has parking available',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  has_parking?: boolean;
 
   @ApiProperty({
     description: 'Full address of the club',

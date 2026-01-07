@@ -15,6 +15,8 @@ export class CreateClubUseCase {
       state: dto.state,
       openingTime: dto.opening_time,
       closingTime: dto.closing_time,
+      zipCode: dto.zip_code,
+      hasParking: dto.has_parking,
       address: dto.address,
       phone: dto.phone,
       images: dto.images,
