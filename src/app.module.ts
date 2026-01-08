@@ -1,31 +1,58 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { BookingsModule } from './bookings/bookings.module';
-import { ClubsModule } from './clubs/clubs.module';
-import { AuctionModule } from './auction/auction.module';
-import { NotificationsModule } from './notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from '@songkeys/nestjs-redis';
+import { APP_GUARD } from '@nestjs/core';
+
+// Infrastructure
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { CacheModule } from './infrastructure/cache/cache.module';
+import { MessagingModule } from './infrastructure/messaging/messaging.module';
+
+// Presentation (HTTP Controllers)
+import { BookingsModule } from './presentation/http/bookings/bookings.module';
+import { ClubsModule } from './presentation/http/clubs/clubs.module';
+import { CourtsModule } from './presentation/http/courts/courts.module';
+import { AuctionsModule } from './presentation/http/auctions/auctions.module';
+import { PlayersModule } from './presentation/http/players/players.module';
+
+// Common
+import { AuthGuard } from './common/guards/auth.guard';
+import { HealthController } from './common/health/health.controller';
+
+// Cron jobs
+import { AuctionExpirationCron } from './presentation/cron/auction-expiration.cron';
+import { AuctionsApplicationModule } from './application/auctions/auctions-application.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     RedisModule.forRoot({
       config: {
-        // Usa a URL do Upstash que está no seu .env
-        url: process.env.REDIS_URL, 
-        // Adicione estas opções para evitar erros de conexão em nuvem
-        connectTimeout: 10000
+        url: process.env.REDIS_URL,
+        connectTimeout: 10000,
       },
     }),
-    ScheduleModule.forRoot(), // Para ler o arquivo .env
+    ScheduleModule.forRoot(),
+    DatabaseModule,
+    CacheModule,
+    MessagingModule,
     BookingsModule,
     ClubsModule,
-    AuctionModule,
-    NotificationsModule],
-  controllers: [AppController],
-  providers: [AppService],
+    CourtsModule,
+    AuctionsModule,
+    PlayersModule,
+    AuctionsApplicationModule, // For cron jobs
+  ],
+  controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    AuctionExpirationCron,
+  ],
 })
 export class AppModule {}
