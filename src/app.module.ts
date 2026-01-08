@@ -29,12 +29,25 @@ import { AuctionsApplicationModule } from './application/auctions/auctions-appli
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    RedisModule.forRoot({
-      config: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 10000,
-      },
-    }),
+    // Only connect to Redis if URL is provided (optional for development)
+    ...(process.env.REDIS_URL
+      ? [
+          RedisModule.forRoot({
+            config: {
+              url: process.env.REDIS_URL,
+              connectTimeout: 10000,
+              retryStrategy: (times) => {
+                // Stop retrying after 3 attempts
+                if (times > 3) {
+                  console.warn('Redis connection failed after 3 attempts. Running without Redis.');
+                  return null;
+                }
+                return Math.min(times * 100, 3000);
+              },
+            },
+          }),
+        ]
+      : []),
     ScheduleModule.forRoot(),
     DatabaseModule,
     CacheModule,
