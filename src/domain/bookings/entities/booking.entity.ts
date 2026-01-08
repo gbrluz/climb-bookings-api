@@ -219,17 +219,17 @@ export class Booking {
   toPlainObject() {
     return {
       id: this.id,
-      courtId: this.courtId,
-      userId: this.userId,
-      startTime: this._startTime,
-      endTime: this._endTime,
+      court_id: this.courtId,
+      user_id: this.userId,
+      start_time: this._startTime,
+      end_time: this._endTime,
       status: this._status,
-      bookingDate: this._bookingDate,
+      booking_date: this._bookingDate,
       price: this._price,
-      openForMatchmaking: this._openForMatchmaking,
-      targetCategory: this._targetCategory,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      open_for_matchmaking: this._openForMatchmaking,
+      target_category: this._targetCategory,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }

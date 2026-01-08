@@ -164,15 +164,15 @@ export class Court {
   toPlainObject() {
     return {
       id: this.id,
-      clubId: this.clubId,
+      club_id: this.clubId,
       name: this._name,
       type: this._type,
-      isIndoor: this._isIndoor,
-      basePrice: this._basePrice,
-      slotDuration: this._slotDuration,
-      isActive: this._isActive,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      is_indoor: this._isIndoor,
+      base_price: this._basePrice,
+      slot_duration: this._slotDuration,
+      is_active: this._isActive,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }

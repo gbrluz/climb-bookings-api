@@ -228,18 +228,18 @@ export class Auction {
   toPlainObject() {
     return {
       id: this.id,
-      playerIds: this._playerIds,
+      player_ids: this._playerIds,
       city: this._city,
       date: this._date,
       time: this._time,
       category: this._category,
       status: this._status,
-      claimedByClubId: this._claimedByClubId,
-      reservationId: this._reservationId,
+      claimed_by_club_id: this._claimedByClubId,
+      reservation_id: this._reservationId,
       latitude: this._latitude,
       longitude: this._longitude,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }

@@ -298,21 +298,21 @@ export class Club {
   toPlainObject() {
     return {
       id: this.id,
-      ownerId: this.ownerId,
+      owner_id: this.ownerId,
       name: this._name,
       city: this._city,
       state: this._state,
-      openingTime: this._openingTime,
-      closingTime: this._closingTime,
-      zipCode: this._zipCode,
-      hasParking: this._hasParking,
+      opening_time: this._openingTime,
+      closing_time: this._closingTime,
+      zip_code: this._zipCode,
+      has_parking: this._hasParking,
       address: this._address,
       phone: this._phone,
       images: this._images,
       latitude: this._latitude,
       longitude: this._longitude,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }
