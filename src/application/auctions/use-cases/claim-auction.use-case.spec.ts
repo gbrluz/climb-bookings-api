@@ -6,7 +6,7 @@ import { ICourtRepository } from '../../../domain/courts/repositories/court.repo
 import { RedisService } from '../../../infrastructure/cache/redis/redis.service';
 import { WebSocketService } from '../../../infrastructure/messaging/websocket/websocket.service';
 import { Auction, AuctionStatus } from '../../../domain/auctions/entities/auction.entity';
-import { Court, SurfaceType } from '../../../domain/courts/entities/court.entity';
+import { Court } from '../../../domain/courts/entities/court.entity';
 import {
   EntityNotFoundException,
   BookingConflictException,
@@ -34,9 +34,10 @@ describe('ClaimAuctionUseCase', () => {
   const mockCourt = Court.create({
     clubId: 'club-1',
     name: 'Court 1',
-    surfaceType: SurfaceType.SYNTHETIC_GRASS,
+    type: 'padel',
     isIndoor: false,
     basePrice: 150,
+    slotDuration: 90,
   });
 
   beforeEach(async () => {

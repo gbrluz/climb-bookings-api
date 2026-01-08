@@ -1,16 +1,11 @@
 import { ValidationException } from '../../../common/exceptions/domain.exception';
 
-export enum SurfaceType {
-  GLASS = 'glass',
-  CONCRETE = 'concrete',
-}
-
 export class Court {
   private constructor(
     public readonly id: string,
     public readonly clubId: string,
     private _name: string,
-    private _surfaceType: SurfaceType,
+    private _type: string | null, // Type of court: padel, tenis, areia, etc.
     private _isIndoor: boolean,
     private _basePrice: number,
     private _slotDuration: number, // Duration in minutes (e.g., 60, 90, 120)
@@ -25,7 +20,7 @@ export class Court {
     id?: string;
     clubId: string;
     name: string;
-    surfaceType: SurfaceType;
+    type?: string | null;
     isIndoor: boolean;
     basePrice: number;
     slotDuration: number;
@@ -37,7 +32,7 @@ export class Court {
       data.id || crypto.randomUUID(),
       data.clubId,
       data.name,
-      data.surfaceType,
+      data.type ?? null,
       data.isIndoor,
       data.basePrice,
       data.slotDuration,
@@ -51,7 +46,7 @@ export class Court {
     id: string;
     clubId: string;
     name: string;
-    surfaceType: SurfaceType;
+    type: string | null;
     isIndoor: boolean;
     basePrice: number;
     slotDuration: number;
@@ -63,7 +58,7 @@ export class Court {
       data.id,
       data.clubId,
       data.name,
-      data.surfaceType,
+      data.type,
       data.isIndoor,
       data.basePrice,
       data.slotDuration,
@@ -106,8 +101,8 @@ export class Court {
     return this._name;
   }
 
-  get surfaceType(): SurfaceType {
-    return this._surfaceType;
+  get type(): string | null {
+    return this._type;
   }
 
   get isIndoor(): boolean {
@@ -171,7 +166,7 @@ export class Court {
       id: this.id,
       clubId: this.clubId,
       name: this._name,
-      surfaceType: this._surfaceType,
+      type: this._type,
       isIndoor: this._isIndoor,
       basePrice: this._basePrice,
       slotDuration: this._slotDuration,

@@ -4,29 +4,27 @@ import {
   IsBoolean,
   IsNumber,
   Min,
-  IsEnum,
   IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { SurfaceType } from '../../../domain/courts/entities/court.entity';
 
 export class CreateCourtDto {
   @ApiProperty({
     description: 'Name of the court',
-    example: 'Court 1',
+    example: 'Quadra Central',
   })
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @ApiProperty({
-    description: 'Type of surface',
-    enum: SurfaceType,
-    example: SurfaceType.GLASS,
+    description: 'Type of court (padel, tenis, areia, beach tennis, etc.)',
+    example: 'padel',
+    required: false,
   })
-  @IsEnum(SurfaceType)
-  @IsNotEmpty()
-  surface_type: SurfaceType;
+  @IsOptional()
+  @IsString()
+  type?: string;
 
   @ApiProperty({
     description: 'Whether the court is indoor',

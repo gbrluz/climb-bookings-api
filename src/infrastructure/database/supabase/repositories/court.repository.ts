@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ICourtRepository } from '../../../../domain/courts/repositories/court.repository.interface';
-import { Court, SurfaceType } from '../../../../domain/courts/entities/court.entity';
+import { Court } from '../../../../domain/courts/entities/court.entity';
 import { SupabaseService } from '../supabase.service';
 import { EntityNotFoundException } from '../../../../common/exceptions/domain.exception';
 
@@ -14,7 +14,7 @@ export class CourtRepository implements ICourtRepository {
       id: court.id,
       club_id: court.clubId,
       name: court.name,
-      surface_type: court.surfaceType,
+      type: court.type,
       is_indoor: court.isIndoor,
       base_price: court.basePrice,
       slot_duration: court.slotDuration,
@@ -78,7 +78,7 @@ export class CourtRepository implements ICourtRepository {
     const supabase = this.supabaseService.getClient();
     const data = {
       name: court.name,
-      surface_type: court.surfaceType,
+      type: court.type,
       is_indoor: court.isIndoor,
       base_price: court.basePrice,
       slot_duration: court.slotDuration,
@@ -111,7 +111,7 @@ export class CourtRepository implements ICourtRepository {
       id: data.id,
       clubId: data.club_id,
       name: data.name,
-      surfaceType: data.surface_type as SurfaceType,
+      type: data.type,
       isIndoor: data.is_indoor,
       basePrice: data.base_price,
       slotDuration: data.slot_duration || 90, // Default 90 minutes for legacy data
